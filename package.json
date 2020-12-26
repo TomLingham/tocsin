@@ -1,0 +1,51 @@
+{
+  "name": "chime",
+  "version": "1.0.0",
+  "description": "Chime service monitoring",
+  "scripts": {
+    "format": "prettier '**/*.{js,md,ts,tsx}'",
+    "format:check": "npm run -s format -- -l",
+    "format:fix": "npm run -s format -- --write",
+    "lint:js:check": "eslint 'src/**/*.{js,ts,tsx}'",
+    "lint:js:fix": "npm run -s lint:js:check -- --fix",
+    "lint:css:check": "stylelint 'src/**/*.{js,ts,tsx}'",
+    "lint:css:fix": "npm run -s lint:css:check -- --fix",
+    "test": "jest --verbose",
+    "test:watch": "npm run -s test -- --watch",
+    "types:check": "tsc --noEmit"
+  },
+  "workspaces": [
+    "packages/**"
+  ],
+  "authors": [
+    "Tom Lingham <tjlingham@gmail.com>"
+  ],
+  "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "@babel/plugin-proposal-class-properties": "^7.12.1",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.12.1",
+    "@babel/plugin-proposal-object-rest-spread": "^7.12.1",
+    "@babel/plugin-proposal-optional-chaining": "^7.12.7",
+    "@babel/preset-env": "^7.12.11",
+    "@babel/preset-react": "^7.12.10",
+    "@babel/preset-typescript": "^7.12.7",
+    "@babel/register": "^7.12.10",
+    "@types/jest": "^26.0.19",
+    "@typescript-eslint/eslint-plugin": "^4.11.0",
+    "@typescript-eslint/parser": "^4.11.0",
+    "babel-jest": "^26.6.3",
+    "babel-loader": "^8.2.2",
+    "babel-plugin-styled-components": "^1.12.0",
+    "core-js": "^3.8.1",
+    "eslint": "^7.16.0",
+    "eslint-plugin-react": "^7.21.5",
+    "jest": "^26.6.3",
+    "jest-styled-components": "^7.0.3",
+    "prettier": "^2.2.1",
+    "stylelint": "^13.8.0",
+    "stylelint-config-recommended": "^3.0.0",
+    "stylelint-config-styled-components": "^0.1.1",
+    "stylelint-processor-styled-components": "^1.10.0",
+    "typescript": "^4.1.3"
+  }
+}
