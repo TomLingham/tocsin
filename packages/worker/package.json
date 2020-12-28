@@ -1,0 +1,11 @@
+{
+  "name": "@tocsin/worker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/types",
+  "devDependencies": {
+    "@types/cron": "^1.7.2",
+    "cron": "^1.8.2"
+  }
+}

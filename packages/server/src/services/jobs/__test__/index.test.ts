@@ -34,10 +34,12 @@ describe(jobs.resolveJobResources, () => {
   it("is a test", async () => {
     __http_mock.setData('console.log("foobar");');
 
-    await jobs.resolveJobResources({
+    const result = await jobs.resolveJobResources({
       "name/space1": "http://someurl1.dev/jobs.json",
       "name/space2": "http://someurl2.dev/jobs.json",
       "name/space3": "http://someurl3.dev/jobs.json",
     });
+
+    console.log(result);
   });
 });

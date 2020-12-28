@@ -1,31 +1,10 @@
-import http from "http";
-import https from "https";
 import fs from "fs/promises";
+import { http } from "@tocsin/common";
+import { Worker } from "worker_threads";
+import { WORKER_RESTART_TIMEOUT_MS } from "../../config";
 
 interface IJobResources {
   [namespace: string]: string;
-}
-
-interface IResolvedJobResources {
-  [namespace: string]: string;
-}
-
-export async function resolveJobResources(
-  resources: IJobResources
-): Promise<IResolvedJobResources> {
-  const resolvedResources: IResolvedJobResources = {};
-
-  for await (const [namespace, script] of createResourceIterator(resources)) {
-    resolvedResources[namespace] = script;
-  }
-
-  return resolvedResources;
-}
-
-export async function* createResourceIterator(resources: IJobResources) {
-  for (const [namespace, url] of Object.entries(resources)) {
-    yield [namespace, await getFromHttp(url)];
-  }
 }
 
 /**
@@ -38,12 +17,12 @@ export async function getJobDefinitions(
   resource: string
 ): Promise<IJobResources> {
   const rawJobDefinitions = /^https?:\/\//.test(resource)
-    ? await getFromHttp(resource)
+    ? await http.get(resource).then((res) => res.body)
     : await getFromFile(resource);
 
   const jobResources: IJobResources = JSON.parse(rawJobDefinitions);
 
-  // Basic runtime validation of the data structure...
+  // TODO: Better schema validation
   if (typeof jobResources !== "object" || jobResources == null) {
     throw new Error("InvalidJobDefinitions");
   }
@@ -58,27 +37,47 @@ export async function getJobDefinitions(
 }
 
 /**
- * Load a file from a url.
- */
-export async function getFromHttp(url: string): Promise<string> {
-  const client = url.startsWith("https://") ? https : http;
-
-  return new Promise((resolve, reject) => {
-    client.get(url, (response) => {
-      if (response.statusCode !== 200) {
-        return reject(new Error(response.statusMessage));
-      }
-
-      let data = "";
-      response.on("data", (chunk) => (data += chunk));
-      response.on("close", () => resolve(data));
-    });
-  });
-}
-
-/**
  * Read a file from the local file system.
  */
 export async function getFromFile(path: string): Promise<string> {
   return (await fs.readFile(path)).toString();
+}
+
+export async function registerJob(namespace: string, code: string) {
+  const path = require.resolve("@tocsin/worker");
+  const worker = new Worker(path, { argv: [code], stdout: true });
+  worker.stdout.on("data", createWorkerLogger(namespace, process.stdout));
+  worker.stderr.on("data", createWorkerLogger(namespace, process.stderr));
+
+  worker.on("error", (error) => {
+    console.error(`${namespace} worker error. ${error.message}`);
+  });
+
+  worker.on("message", (data: any) => {
+    console.log(`Message From Worker [${namespace}]:`, data);
+  });
+
+  worker.on("exit", () => {
+    // In the unlikely event that the worker is unable to be recovered, we'll
+    // try to load it again after the timeout.
+    console.log(
+      `${namespace} Restart in ${Math.round(WORKER_RESTART_TIMEOUT_MS / 1000)}s`
+    );
+    setTimeout(() => registerJob(namespace, code), WORKER_RESTART_TIMEOUT_MS);
+  });
+
+  return new Promise((resolve) => worker.on("online", resolve));
+}
+
+/**
+ * Create a logging function to handle the 'data' event of the worker std* output.
+ *
+ * @param namespace Worker namespace.
+ * @param stream the writeable stream to send the logs to.
+ */
+function createWorkerLogger(namespace: string, stream: NodeJS.WritableStream) {
+  return (message: Buffer) => {
+    const ns = `[${namespace}]`.padEnd(15, " ");
+    stream.write(message.toString().replace(/(.*)\n/g, `${ns} $1\n`));
+  };
 }
