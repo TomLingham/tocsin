@@ -22,15 +22,17 @@ export function monitor(name: string, opts: IMonitorOpts) {
 
   console.log(`Registering task "${name}" with fuzzing offset ${msOffset}`);
 
-  parentPort?.postMessage({
-    type: "registration",
-    message: `'${name}' has been registered.`,
-  });
-
-  new CronJob({
+  const job = new CronJob({
     cronTime: opts.cron,
     onTick: () => void setTimeout(handler, msOffset),
-  }).start();
+    start: true,
+  });
+
+  raise({
+    type: "registration",
+    message: `'${name}' has been registered.`,
+    nextRun: job.nextDate().toDate(),
+  });
 }
 
 function createWrappedHandler(name: string, opts: IMonitorOpts) {
@@ -43,10 +45,10 @@ function createWrappedHandler(name: string, opts: IMonitorOpts) {
       failingSince = new Date();
     }
 
-    parentPort?.postMessage({
+    raise({
       type: "failure",
       message: `'${name}' has failed: ${error}`,
-      failingSince,
+      failingSince: failingSince!,
     });
 
     previousResult = "fail";
@@ -54,10 +56,10 @@ function createWrappedHandler(name: string, opts: IMonitorOpts) {
 
   function success() {
     if (previousResult === "fail") {
-      parentPort?.postMessage({
-        type: "recovered",
+      raise({
+        type: "recovery",
         message: `'${name}' has recovered from a previous failure.`,
-        failingSince,
+        failingSince: failingSince!,
         recoveredAt: new Date(),
       });
     }
@@ -79,4 +81,8 @@ function createWrappedHandler(name: string, opts: IMonitorOpts) {
       console.timeEnd(timerLabel);
     }
   };
+}
+
+async function raise(event: IWorkerEvent) {
+  parentPort?.postMessage(event);
 }

@@ -53,7 +53,7 @@ export async function registerJob(namespace: string, code: string) {
     console.error(`${namespace} worker error. ${error.message}`);
   });
 
-  worker.on("message", (data: any) => {
+  worker.on("message", (data: IWorkerEvent) => {
     console.log(`Message From Worker [${namespace}]:`, data);
   });
 

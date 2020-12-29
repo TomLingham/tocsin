@@ -4,6 +4,7 @@ import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
 import resolve from "@rollup/plugin-node-resolve";
 import fg from "fast-glob";
+import { terser } from "rollup-plugin-terser";
 import { writeFile } from "fs/promises";
 
 const jobs = fg.sync("./src/**/*.job.ts");
@@ -11,6 +12,7 @@ const extensions = [".ts", ".tsx", ".js", ".jsx"];
 
 const plugins = [
   babel({ extensions, envName: "node", babelHelpers: "bundled" }),
+  terser(),
   resolve({ extensions, preferBuiltins: true }),
   commonjs(),
   json(),

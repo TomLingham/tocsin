@@ -1,0 +1,1 @@
+type SlackChannelName = `#${string}` | `@${string}`;
