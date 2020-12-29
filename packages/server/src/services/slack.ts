@@ -2,12 +2,6 @@ import { SLACK_DEFAULT_CHANNEL, SLACK_HOOK_URL } from "../config";
 import { http } from "@tocsin/common";
 import { intervalToDuration, formatDuration } from "date-fns";
 
-const emoji = {
-  scared: "https://i.imgur.com/5TCUMmV.png",
-  laughing: "https://i.imgur.com/G78oyKE.png",
-  like: "https://i.imgur.com/o9DajY9.png",
-};
-
 interface ISlackOpts {
   channel?: SlackChannelName;
 }
@@ -35,7 +29,7 @@ export async function failure(
 
   await http.post(SLACK_HOOK_URL, {
     channel: channel,
-    icon_url: emoji.scared,
+    icon_emoji: ":scared:",
     username: "chime-bot",
     blocks: [
       {
@@ -95,7 +89,7 @@ export async function recovered(
 
   await http.post(SLACK_HOOK_URL, {
     channel: channel,
-    icon_url: emoji.laughing,
+    icon_emoji: ":sweat_smile:",
     username: "chime-bot",
     blocks: [
       {
@@ -151,7 +145,7 @@ export async function registered(
 
   await http.post(SLACK_HOOK_URL, {
     channel: channel,
-    icon_url: emoji.like,
+    icon_emoji: ":sunglasses:",
     username: "chime-bot",
     blocks: [
       {
