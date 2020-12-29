@@ -2,7 +2,12 @@
   "name": "@tocsin/worker",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "dist",
+  "private": false,
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "module": "module",
   "types": "dist/types",
   "devDependencies": {
     "@types/cron": "^1.7.2",

@@ -22,7 +22,7 @@ export default packages.flatMap((pkg) => {
   const root = `packages/${pkg}`;
   return [
     {
-      input: `packages/${pkg}/src/index.ts`,
+      input: `${root}/src/index.ts`,
       output: [
         {
           dir: `${root}/dist`,
@@ -33,7 +33,7 @@ export default packages.flatMap((pkg) => {
       plugins,
     },
     {
-      input: `packages/${pkg}/src/index.ts`,
+      input: `${root}/src/index.ts`,
       output: [
         {
           dir: `${root}/module`,
