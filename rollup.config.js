@@ -7,7 +7,7 @@ import typescript from "@rollup/plugin-typescript";
 import sourcemaps from "rollup-plugin-sourcemaps";
 import { terser } from "rollup-plugin-terser";
 
-const packages = ["worker", "common", "server"];
+const packages = ["common", "worker", "server"];
 const extensions = [".ts", ".tsx", ".js", ".jsx"];
 
 const plugins = [
@@ -46,7 +46,8 @@ export default packages.flatMap((pkg) => {
           rootDir: path.join(root, "src"),
           declarationDir: path.join(root, "module", "types"),
           declaration: true,
-          include: path.join(root, "src", "**", "*.ts"),
+          include: [path.join(root, "src", "**", "*.ts")],
+          exclude: ["**/__test__/**"],
         })
       ),
     },
