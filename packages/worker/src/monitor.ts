@@ -40,7 +40,7 @@ export function monitor(name: string, opts: IMonitorOpts) {
 
 function createWrappedHandler(name: string, opts: IMonitorOpts) {
   let executionCount = 0;
-  let previousResult: IResult | null = null;
+  let previousResult: IResult | null = "success"; // Assume success?
   let failingSince: Date | null = null;
 
   function failure(error: Error) {
