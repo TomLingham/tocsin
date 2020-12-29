@@ -2,16 +2,7 @@ import { SLACK_DEFAULT_CHANNEL, SLACK_HOOK_URL } from "../config";
 import { http } from "@tocsin/common";
 import { intervalToDuration, formatDuration } from "date-fns";
 
-interface ISlackOpts {
-  channel?: SlackChannelName;
-}
-
-export async function failure(
-  namespace: string,
-  jobName: string,
-  event: IWorkerFailureEvent,
-  opts: ISlackOpts = {}
-) {
+export async function failure(namespace: string, event: IWorkerFailureEvent) {
   /**
    * This destructuring with the string template requires typescript@next, to
    * avoid blowing the call stack.
@@ -19,7 +10,7 @@ export async function failure(
    *
    * TODO: install 4.2.0 when it is officially released in feb/mar.
    */
-  const { channel = SLACK_DEFAULT_CHANNEL }: ISlackOpts = opts as ISlackOpts;
+  const channel = event.channel ?? SLACK_DEFAULT_CHANNEL;
 
   const totalDuration = intervalToDuration({
     start: event.failingSince,
@@ -29,14 +20,14 @@ export async function failure(
 
   await http.post(SLACK_HOOK_URL, {
     channel: channel,
-    icon_emoji: ":scared:",
-    username: "chime-bot",
+    icon_emoji: ":scream:",
+    username: "tocsin-bot",
     blocks: [
       {
         type: "header",
         text: {
           type: "plain_text",
-          text: `:fire: Failure: [${namespace}] ${jobName}`,
+          text: `:fire: Failure: [${namespace}] ${event.jobName}`,
           emoji: true,
         },
       },
@@ -57,7 +48,7 @@ export async function failure(
           },
           {
             type: "mrkdwn",
-            text: `*Job:* ${jobName}`,
+            text: `*Job:* ${event.jobName}`,
           },
         ],
       },
@@ -76,11 +67,9 @@ export async function failure(
 
 export async function recovered(
   namespace: string,
-  jobName: string,
-  event: IWorkerRecoveryEvent,
-  opts: ISlackOpts = {}
+  event: IWorkerRecoveryEvent
 ) {
-  const { channel = SLACK_DEFAULT_CHANNEL }: ISlackOpts = opts as ISlackOpts;
+  const channel = event.channel ?? SLACK_DEFAULT_CHANNEL;
   const totalDuration = intervalToDuration({
     start: event.failingSince,
     end: event.recoveredAt,
@@ -90,13 +79,13 @@ export async function recovered(
   await http.post(SLACK_HOOK_URL, {
     channel: channel,
     icon_emoji: ":sweat_smile:",
-    username: "chime-bot",
+    username: "tocsin-bot",
     blocks: [
       {
         type: "header",
         text: {
           type: "plain_text",
-          text: `:white_check_mark: Recovered: [${namespace}] ${jobName}`,
+          text: `:white_check_mark: Recovered: [${namespace}] ${event.jobName}`,
           emoji: true,
         },
       },
@@ -117,7 +106,7 @@ export async function recovered(
           },
           {
             type: "mrkdwn",
-            text: `*Job:* ${jobName}`,
+            text: `*Job:* ${event.jobName}`,
           },
         ],
       },
@@ -136,23 +125,21 @@ export async function recovered(
 
 export async function registered(
   namespace: string,
-  jobName: string,
-  event: IWorkerRegistrationEvent,
-  opts: ISlackOpts = {}
+  event: IWorkerRegistrationEvent
 ) {
-  const { channel = SLACK_DEFAULT_CHANNEL }: ISlackOpts = opts as ISlackOpts;
+  const channel = event.channel ?? SLACK_DEFAULT_CHANNEL;
   const nextRunTimeStamp = Math.round(+event.nextRun / 1000);
 
   await http.post(SLACK_HOOK_URL, {
     channel: channel,
     icon_emoji: ":sunglasses:",
-    username: "chime-bot",
+    username: "tocsin-bot",
     blocks: [
       {
         type: "header",
         text: {
           type: "plain_text",
-          text: `:large_blue_circle: Registered: [${namespace}] ${jobName}`,
+          text: `:large_blue_circle: Registered: [${namespace}] ${event.jobName}`,
           emoji: true,
         },
       },
@@ -173,7 +160,7 @@ export async function registered(
           },
           {
             type: "mrkdwn",
-            text: `*Job:* ${jobName}`,
+            text: `*Job:* ${event.jobName}`,
           },
         ],
       },

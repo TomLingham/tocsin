@@ -1,4 +1,5 @@
 import fs from "fs/promises";
+import * as slack from "../slack";
 import { http } from "@tocsin/common";
 import { Worker } from "worker_threads";
 import { WORKER_RESTART_TIMEOUT_MS } from "../../config";
@@ -53,8 +54,10 @@ export async function registerJob(namespace: string, code: string) {
     console.error(`${namespace} worker error. ${error.message}`);
   });
 
-  worker.on("message", (data: IWorkerEvent) => {
-    console.log(`Message From Worker [${namespace}]:`, data);
+  worker.on("message", (event: IWorkerEvent) => {
+    if (event.type === "registration") slack.registered(namespace, event);
+    if (event.type === "failure") slack.failure(namespace, event);
+    if (event.type === "recovery") slack.recovered(namespace, event);
   });
 
   worker.on("exit", () => {

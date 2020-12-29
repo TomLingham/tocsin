@@ -2,6 +2,7 @@ import { CronJob } from "cron";
 import { parentPort } from "worker_threads";
 
 interface IMonitorOpts {
+  channel?: SlackChannelName;
   cron: string;
   task: () => void;
 }
@@ -30,8 +31,10 @@ export function monitor(name: string, opts: IMonitorOpts) {
 
   raise({
     type: "registration",
+    jobName: name,
     message: `'${name}' has been registered.`,
     nextRun: job.nextDate().toDate(),
+    channel: opts.channel,
   });
 }
 
@@ -47,8 +50,10 @@ function createWrappedHandler(name: string, opts: IMonitorOpts) {
 
     raise({
       type: "failure",
+      jobName: name,
       message: `'${name}' has failed: ${error}`,
       failingSince: failingSince!,
+      channel: opts.channel,
     });
 
     previousResult = "fail";
@@ -58,9 +63,11 @@ function createWrappedHandler(name: string, opts: IMonitorOpts) {
     if (previousResult === "fail") {
       raise({
         type: "recovery",
+        jobName: name,
         message: `'${name}' has recovered from a previous failure.`,
         failingSince: failingSince!,
         recoveredAt: new Date(),
+        channel: opts.channel,
       });
     }
 

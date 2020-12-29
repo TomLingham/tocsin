@@ -1,5 +1,7 @@
 interface IWorkerBaseEvent {
   type: string;
+  channel?: SlackChannelName;
+  jobName: string;
   message: string;
 }
 
