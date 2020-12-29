@@ -7,7 +7,7 @@ import typescript from "@rollup/plugin-typescript";
 import sourcemaps from "rollup-plugin-sourcemaps";
 import { terser } from "rollup-plugin-terser";
 
-const packages = ["common", "worker", "server"];
+const packages = ["common", "server"];
 const extensions = [".ts", ".tsx", ".js", ".jsx"];
 
 const plugins = [

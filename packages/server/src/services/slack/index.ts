@@ -1,4 +1,4 @@
-import { SLACK_DEFAULT_CHANNEL, SLACK_HOOK_URL } from "../config";
+import { SLACK_DEFAULT_CHANNEL, SLACK_HOOK_URL } from "../../config";
 import { http } from "@tocsin/common";
 import { intervalToDuration, formatDuration } from "date-fns";
 

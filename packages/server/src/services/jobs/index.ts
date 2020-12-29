@@ -45,7 +45,7 @@ export async function getFromFile(path: string): Promise<string> {
 }
 
 export async function registerJob(namespace: string, code: string) {
-  const path = require.resolve("@tocsin/worker");
+  const path = require.resolve("../workers");
   const worker = new Worker(path, { argv: [code], stdout: true });
   worker.stdout.on("data", createWorkerLogger(namespace, process.stdout));
   worker.stderr.on("data", createWorkerLogger(namespace, process.stderr));
