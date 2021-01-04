@@ -44,7 +44,7 @@ function createWrappedHandler(name: string, opts: IMonitorOpts) {
   let failingSince: Date | null = null;
 
   function failure(error: Error) {
-    if (previousResult === "success") {
+    if (failingSince == null) {
       failingSince = new Date();
     }
 
@@ -71,6 +71,7 @@ function createWrappedHandler(name: string, opts: IMonitorOpts) {
       });
     }
 
+    failingSince = null;
     previousResult = "success";
   }
 
