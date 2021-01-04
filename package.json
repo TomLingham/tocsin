@@ -1,5 +1,5 @@
 {
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Tocsin service monitoring",
   "engines": {
     "npm": ">=7.0.0"
