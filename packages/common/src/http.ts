@@ -7,19 +7,11 @@ interface IHttpResponse extends http.IncomingMessage {
   body: string;
 }
 
-const proxyEnvVariables = ["http_proxy", "https_proxy", "no_proxy"];
-
-interface IProxyConf {
-  httpProxy?: string;
-  httpsProxy?: string;
-  noProxy: string[];
-}
-
 /**
  * GET an HTTP endpoint.
  */
 export async function get(url: string): Promise<IHttpResponse> {
-  const request = getClient(url);
+  const request = createHttpClient(url);
 
   return new Promise((resolve, reject) => {
     const req = request({}, (response) => {
@@ -38,15 +30,19 @@ export async function get(url: string): Promise<IHttpResponse> {
 /**
  * POST Json data to an endpoint
  */
-export async function post(url: string, data: object): Promise<IHttpResponse> {
-  const request = getClient(url);
-  const jsonData = JSON.stringify(data);
+export async function post(
+  url: string,
+  data: string,
+  opts: http.RequestOptions = {}
+): Promise<IHttpResponse> {
+  const request = createHttpClient(url);
 
-  const options = {
+  const options: http.RequestOptions = {
+    ...opts,
     method: "POST",
     headers: {
-      "content-type": "application/json",
-      "content-length": jsonData.length,
+      ...opts.headers,
+      "content-length": data.length,
     },
   };
 
@@ -60,56 +56,52 @@ export async function post(url: string, data: object): Promise<IHttpResponse> {
 
     req.on("error", reject);
 
-    req.write(jsonData);
+    req.write(data);
     req.end();
   });
 }
 
-function getClient(url: string) {
+type IHttpProtocol = "https:" | "http:";
+
+function createHttpClient(url: string) {
   const endpoint = parse(url);
   const client = endpoint.protocol === "https:" ? https.request : http.request;
+  const proxyUrl = getProxyUrl(
+    endpoint.protocol as IHttpProtocol,
+    endpoint.hostname ?? ""
+  );
 
-  if (process.env.HTTP_PROXY) {
-    const noProxyHosts = process.env.NO_PROXY?.split(",").map((v) => v.trim());
-    if (!noProxyHosts?.some((v) => endpoint.host?.endsWith(v))) {
-      const agent = new HttpsProxyAgent(process.env.HTTP_PROXY ?? "");
-      console.log(
-        "Using proxy for request",
-        url,
-        process.env.HTTP_PROXY,
-        endpoint
-      );
-
-      return (
-        opts: https.RequestOptions = {},
-        callback: (res: http.IncomingMessage) => void
-      ) =>
-        client(
-          {
-            agent,
-            ...endpoint,
-            ...opts,
-          },
-          callback
-        );
-    }
+  if (proxyUrl != null) {
+    const agent = new HttpsProxyAgent(proxyUrl);
+    return (
+      opts: https.RequestOptions = {},
+      callback: (res: http.IncomingMessage) => void
+    ) => client({ agent, ...opts, ...endpoint }, callback);
   }
-  console.log("NOT Using proxy for request", url, endpoint);
+
   return (
     opts: http.RequestOptions = {},
     callback: (res: http.IncomingMessage) => void
-  ) => client({ ...endpoint, ...opts }, callback);
+  ) => client({ ...opts, ...endpoint }, callback);
 }
 
-function getProxyConfig(): IProxyConf | null {
-  return {
-    httpProxy: process.env.http_proxy ?? process.env.HTTP_PROXY,
-    httpsProxy: process.env.https_proxy ?? process.env.HTTPS_PROXY,
-    noProxy: normalizeNoProxy(process.env.NO_PROXY ?? ""),
-  };
+function getProxyUrl(protocol: IHttpProtocol, host: string): string | null {
+  const httpEnv = ["http_proxy", "HTTP_PROXY"];
+  const httpsEnv = ["https_proxy", "HTTPS_PROXY"];
+  const env = protocol === "https:" ? httpsEnv : httpEnv;
+  const proxyUrl = env.find((n) => n in process.env);
+  const noProxy = normalizeNoProxy(
+    process.env.no_proxy ?? process.env.NO_PROXY ?? ""
+  );
+
+  if (proxyUrl == null || !noProxy.some((part) => host.endsWith(part))) {
+    return null;
+  }
+
+  return proxyUrl;
 }
 
 function normalizeNoProxy(noProxy: string) {
-  // TODO: No support for wildcards at the moment.
+  // TODO: No support for wildcards in no_proxy at the moment...
   return noProxy.split(",").map((host) => host.trim());
 }

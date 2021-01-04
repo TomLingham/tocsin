@@ -8,3 +8,7 @@ build:
 .PHONY: publish
 publish:
 	docker push tomlingham/tocsin
+
+.PHONY: dev/server
+dev/server:
+	(cd packages/server; npm run dev)
