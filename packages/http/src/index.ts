@@ -89,25 +89,26 @@ function getProxyUrl(protocol: IHttpProtocol, host: string): string | null {
   const allProxyEnv = ["all_proxy", "ALL_PROXY"];
   const noProxyEnv = ["no_proxy", "NO_PROXY"];
 
-  const proxyEnv =
+  const proxyEnvVariableNames =
     protocol === "https:"
       ? ["https_proxy", "HTTPS_PROXY", ...allProxyEnv]
       : ["http_proxy", "HTTP_PROXY", ...allProxyEnv];
 
-  const proxyUrl = proxyEnv.find(isInEnvironment);
+  const proxyEnv = proxyEnvVariableNames.find(isInEnvironment);
   const noProxy = normalizeNoProxy(noProxyEnv.find(isInEnvironment) ?? "");
 
-  if (proxyUrl == null || !noProxy.some((part) => host.endsWith(part))) {
+  if (proxyEnv == null || !noProxy.some((part) => host.endsWith(part))) {
     // if the proxy url isn't set, or the host appears in the no proxy variable
     // we just return null. We shouldn't try and use the proxy in this case.
     return null;
   }
 
-  return proxyUrl;
+  return process.env[proxyEnv]!;
 }
 
 function normalizeNoProxy(noProxy: string) {
   // TODO: No support for wildcards in no_proxy at the moment...
+  // TODO: localhost/127.0.0.1 and loopback
   return noProxy.split(",").map((host) => host.trim());
 }
 
