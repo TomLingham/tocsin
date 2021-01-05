@@ -1,7 +1,7 @@
 import http from "http";
-import { parse } from "url";
 import https from "https";
 import { HttpsProxyAgent } from "https-proxy-agent";
+import { parse } from "url";
 
 interface IHttpResponse extends http.IncomingMessage {
   body: string;
@@ -86,15 +86,20 @@ function createHttpClient(url: string) {
 }
 
 function getProxyUrl(protocol: IHttpProtocol, host: string): string | null {
-  const httpEnv = ["http_proxy", "HTTP_PROXY"];
-  const httpsEnv = ["https_proxy", "HTTPS_PROXY"];
-  const env = protocol === "https:" ? httpsEnv : httpEnv;
-  const proxyUrl = env.find((n) => n in process.env);
-  const noProxy = normalizeNoProxy(
-    process.env.no_proxy ?? process.env.NO_PROXY ?? ""
-  );
+  const allProxyEnv = ["all_proxy", "ALL_PROXY"];
+  const noProxyEnv = ["no_proxy", "NO_PROXY"];
+
+  const proxyEnv =
+    protocol === "https:"
+      ? ["https_proxy", "HTTPS_PROXY", ...allProxyEnv]
+      : ["http_proxy", "HTTP_PROXY", ...allProxyEnv];
+
+  const proxyUrl = proxyEnv.find(isInEnvironment);
+  const noProxy = normalizeNoProxy(noProxyEnv.find(isInEnvironment) ?? "");
 
   if (proxyUrl == null || !noProxy.some((part) => host.endsWith(part))) {
+    // if the proxy url isn't set, or the host appears in the no proxy variable
+    // we just return null. We shouldn't try and use the proxy in this case.
     return null;
   }
 
@@ -104,4 +109,8 @@ function getProxyUrl(protocol: IHttpProtocol, host: string): string | null {
 function normalizeNoProxy(noProxy: string) {
   // TODO: No support for wildcards in no_proxy at the moment...
   return noProxy.split(",").map((host) => host.trim());
+}
+
+function isInEnvironment(variableName: string) {
+  return variableName in process.env;
 }

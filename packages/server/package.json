@@ -5,9 +5,7 @@
   "main": "lib/index.js",
   "types": "dist/types",
   "scripts": {
-    "build": "babel -d ./lib -x .ts --delete-dir-on-start ./src",
-    "watch": "nodemon -w ./src -e .ts ./lib/index.js",
-    "dev": "npm run -s build && concurrently 'npm:build -- -w --skip-initial-build' 'npm:watch'"
+    "dev": "nodemon -e .ts -r ../../scripts/babel.js ./src/index.ts"
   },
   "devDependencies": {
     "@koa/router": "^10.0.0",

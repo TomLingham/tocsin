@@ -6,12 +6,22 @@ import resolve from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import sourcemaps from "rollup-plugin-sourcemaps";
 import { terser } from "rollup-plugin-terser";
+import alias from "@rollup/plugin-alias";
 
-const packages = ["common", "server"];
+const packages = ["http", "worker", "server"];
 const extensions = [".ts", ".tsx", ".js", ".jsx"];
 
-const plugins = [
-  babel({ extensions, envName: "node", babelHelpers: "bundled" }),
+const createPlugins = (root) => [
+  alias({
+    entries: [
+      { find: /^@tocsin\/(.+)\/dist\/(.+)/, replacement: "@tocsin/$1/src/$2" },
+    ],
+  }),
+  babel({
+    extensions,
+    envName: "node",
+    babelHelpers: "bundled",
+  }),
   resolve({ extensions, preferBuiltins: true }),
   commonjs(),
   json(),
@@ -20,6 +30,7 @@ const plugins = [
 
 export default packages.flatMap((pkg) => {
   const root = `packages/${pkg}`;
+  const plugins = createPlugins(root);
   return [
     {
       input: `${root}/src/index.ts`,

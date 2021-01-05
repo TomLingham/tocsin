@@ -32,7 +32,6 @@ export function monitor(name: string, opts: IMonitorOpts) {
   raise({
     type: "registration",
     jobName: name,
-    message: `'${name}' has been registered.`,
     nextRun: job.nextDate().toDate(),
     channel: opts.channel,
   });
@@ -40,7 +39,7 @@ export function monitor(name: string, opts: IMonitorOpts) {
 
 function createWrappedHandler(name: string, opts: IMonitorOpts) {
   let executionCount = 0;
-  let previousResult: IResult | null = "success"; // Assume success?
+  let previousResult: IResult | null = null;
   let failingSince: Date | null = null;
 
   function failure(error: Error) {
@@ -51,7 +50,7 @@ function createWrappedHandler(name: string, opts: IMonitorOpts) {
     raise({
       type: "failure",
       jobName: name,
-      message: `'${name}' has failed: ${error}`,
+      error: error,
       failingSince: failingSince!,
       channel: opts.channel,
     });
@@ -64,7 +63,6 @@ function createWrappedHandler(name: string, opts: IMonitorOpts) {
       raise({
         type: "recovery",
         jobName: name,
-        message: `'${name}' has recovered from a previous failure.`,
         failingSince: failingSince!,
         recoveredAt: new Date(),
         channel: opts.channel,

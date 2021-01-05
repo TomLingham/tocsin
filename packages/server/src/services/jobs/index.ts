@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import * as slack from "../slack";
-import { http } from "@tocsin/common";
+import * as http from "@tocsin/http";
 import { Worker } from "worker_threads";
 import { WORKER_RESTART_TIMEOUT_MS } from "../../config";
 
@@ -19,7 +19,7 @@ export async function getJobDefinitions(
 ): Promise<IJobResources> {
   const rawJobDefinitions = /^https?:\/\//.test(resource)
     ? await http.get(resource).then((res) => res.body)
-    : await getFromFile(resource);
+    : (await fs.readFile(resource)).toString();
 
   const jobResources: IJobResources = JSON.parse(rawJobDefinitions);
 
@@ -37,16 +37,10 @@ export async function getJobDefinitions(
   return jobResources;
 }
 
-/**
- * Read a file from the local file system.
- */
-export async function getFromFile(path: string): Promise<string> {
-  return (await fs.readFile(path)).toString();
-}
-
 export async function registerJob(namespace: string, code: string) {
-  const path = require.resolve("../workers");
-  const worker = new Worker(path, { argv: [code], stdout: true });
+  const workerModulePath = require.resolve("@tocsin/worker");
+
+  const worker = new Worker(workerModulePath, { argv: [code], stdout: true });
   worker.stdout.on("data", createWorkerLogger(namespace, process.stdout));
   worker.stderr.on("data", createWorkerLogger(namespace, process.stderr));
 
@@ -63,6 +57,7 @@ export async function registerJob(namespace: string, code: string) {
   worker.on("exit", () => {
     // In the unlikely event that the worker is unable to be recovered, we'll
     // try to load it again after the timeout.
+    // TODO: exponential back-off with alerts raised...
     console.log(
       `${namespace} Restart in ${Math.round(WORKER_RESTART_TIMEOUT_MS / 1000)}s`
     );

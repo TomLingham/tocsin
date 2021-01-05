@@ -1,6 +1,6 @@
 import vm from "vm";
 import m from "module";
-import { http } from "@tocsin/common";
+import * as http from "@tocsin/http";
 import { monitor } from "./monitor";
 
 // @ts-ignore

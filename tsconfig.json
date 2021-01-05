@@ -12,5 +12,8 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Node",
+    "paths": {
+      "@tocsin/*": ["./node_modules/@tocsin/*/src"]
+    }
   }
 }

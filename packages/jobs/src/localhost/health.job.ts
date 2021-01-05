@@ -1,4 +1,4 @@
-import { http } from "@tocsin/common";
+import * as http from "@tocsin/http";
 
 monitor("Localhost", {
   cron: "*/2 * * * * *",

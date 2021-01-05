@@ -2,12 +2,12 @@ interface IWorkerBaseEvent {
   type: string;
   channel?: SlackChannelName;
   jobName: string;
-  message: string;
 }
 
 interface IWorkerFailureEvent extends IWorkerBaseEvent {
   type: "failure";
   failingSince: Date;
+  error: Error,
 }
 
 interface IWorkerRecoveryEvent extends IWorkerBaseEvent {

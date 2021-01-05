@@ -1,5 +1,5 @@
 import { SLACK_DEFAULT_CHANNEL, SLACK_HOOK_URL } from "../../config";
-import { http } from "@tocsin/common";
+import * as http from "@tocsin/http";
 import { intervalToDuration, formatDuration } from "date-fns";
 
 export async function failure(namespace: string, event: IWorkerFailureEvent) {
@@ -18,51 +18,64 @@ export async function failure(namespace: string, event: IWorkerFailureEvent) {
   });
   const failingSinceUnixTimestamp = Math.round(+event.failingSince / 1000);
 
-  await http.post(SLACK_HOOK_URL, {
-    channel: channel,
-    icon_emoji: ":scream:",
-    username: "tocsin-bot",
-    blocks: [
-      {
-        type: "header",
-        text: {
-          type: "plain_text",
-          text: `:fire: Failure: [${namespace}] ${event.jobName}`,
-          emoji: true,
+  await http.post(
+    SLACK_HOOK_URL,
+    JSON.stringify({
+      channel: channel,
+      icon_emoji: ":scream:",
+      username: "tocsin-bot",
+      text: `Failure: [${namespace}] ${event.jobName}`,
+      blocks: [
+        {
+          type: "header",
+          text: {
+            type: "plain_text",
+            text: `:fire: Failure: [${namespace}] ${event.jobName}`,
+            emoji: true,
+          },
         },
-      },
-      {
-        type: "section",
-        fields: [
-          {
+        {
+          type: "section",
+          fields: [
+            {
+              type: "mrkdwn",
+              text: "*Status:* Failed <!here>",
+            },
+            {
+              type: "mrkdwn",
+              text: `*Namespace:* ${namespace}`,
+            },
+            {
+              type: "mrkdwn",
+              text: `*Since:* <!date^${failingSinceUnixTimestamp}^{date_short_pretty} {time}|${event.failingSince.toISOString()}>`,
+            },
+            {
+              type: "mrkdwn",
+              text: `*Job:* ${event.jobName}`,
+            },
+          ],
+        },
+        {
+          type: "section",
+          text: {
             type: "mrkdwn",
-            text: "*Status:* Failed",
+            text: "```" + event.error.message + "```",
           },
-          {
-            type: "mrkdwn",
-            text: `*Namespace:* ${namespace}`,
-          },
-          {
-            type: "mrkdwn",
-            text: `*Since:* <!date^${failingSinceUnixTimestamp}^{date_short_pretty} {time}|${event.failingSince.toISOString()}>`,
-          },
-          {
-            type: "mrkdwn",
-            text: `*Job:* ${event.jobName}`,
-          },
-        ],
-      },
-      {
-        type: "context",
-        elements: [
-          {
-            type: "mrkdwn",
-            text: `*Failing for:* ${formatDuration(totalDuration)}`,
-          },
-        ],
-      },
-    ],
-  });
+        },
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: `*Failing for:* ${
+                formatDuration(totalDuration) || "0 seconds"
+              }`,
+            },
+          ],
+        },
+      ],
+    })
+  );
 }
 
 export async function recovered(
@@ -76,51 +89,55 @@ export async function recovered(
   });
   const recoveredAtUnixTimestamp = Math.round(+event.recoveredAt / 1000);
 
-  await http.post(SLACK_HOOK_URL, {
-    channel: channel,
-    icon_emoji: ":sweat_smile:",
-    username: "tocsin-bot",
-    blocks: [
-      {
-        type: "header",
-        text: {
-          type: "plain_text",
-          text: `:white_check_mark: Recovered: [${namespace}] ${event.jobName}`,
-          emoji: true,
+  await http.post(
+    SLACK_HOOK_URL,
+    JSON.stringify({
+      channel: channel,
+      icon_emoji: ":sweat_smile:",
+      username: "tocsin-bot",
+      text: `Recovered: [${namespace}] ${event.jobName}`,
+      blocks: [
+        {
+          type: "header",
+          text: {
+            type: "plain_text",
+            text: `:white_check_mark: Recovered: [${namespace}] ${event.jobName}`,
+            emoji: true,
+          },
         },
-      },
-      {
-        type: "section",
-        fields: [
-          {
-            type: "mrkdwn",
-            text: "*Status:* Recovered",
-          },
-          {
-            type: "mrkdwn",
-            text: `*Namespace:* ${namespace}`,
-          },
-          {
-            type: "mrkdwn",
-            text: `*Recovered At:* <!date^${recoveredAtUnixTimestamp}^{date_short_pretty} {time}|${event.recoveredAt.toISOString()}>`,
-          },
-          {
-            type: "mrkdwn",
-            text: `*Job:* ${event.jobName}`,
-          },
-        ],
-      },
-      {
-        type: "context",
-        elements: [
-          {
-            type: "mrkdwn",
-            text: `*Total duration:* ${formatDuration(totalDuration)}`,
-          },
-        ],
-      },
-    ],
-  });
+        {
+          type: "section",
+          fields: [
+            {
+              type: "mrkdwn",
+              text: "*Status:* Recovered",
+            },
+            {
+              type: "mrkdwn",
+              text: `*Namespace:* ${namespace}`,
+            },
+            {
+              type: "mrkdwn",
+              text: `*Recovered At:* <!date^${recoveredAtUnixTimestamp}^{date_short_pretty} {time}|${event.recoveredAt.toISOString()}>`,
+            },
+            {
+              type: "mrkdwn",
+              text: `*Job:* ${event.jobName}`,
+            },
+          ],
+        },
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: `*Total duration:* ${formatDuration(totalDuration)}`,
+            },
+          ],
+        },
+      ],
+    })
+  );
 }
 
 export async function registered(
@@ -130,40 +147,44 @@ export async function registered(
   const channel = event.channel ?? SLACK_DEFAULT_CHANNEL;
   const nextRunTimeStamp = Math.round(+event.nextRun / 1000);
 
-  await http.post(SLACK_HOOK_URL, {
-    channel: channel,
-    icon_emoji: ":sunglasses:",
-    username: "tocsin-bot",
-    blocks: [
-      {
-        type: "header",
-        text: {
-          type: "plain_text",
-          text: `:large_blue_circle: Registered: [${namespace}] ${event.jobName}`,
-          emoji: true,
+  await http.post(
+    SLACK_HOOK_URL,
+    JSON.stringify({
+      channel: channel,
+      icon_emoji: ":sunglasses:",
+      username: "tocsin-bot",
+      text: `Registered: [${namespace}] ${event.jobName}`,
+      blocks: [
+        {
+          type: "header",
+          text: {
+            type: "plain_text",
+            text: `:large_blue_circle: Registered: [${namespace}] ${event.jobName}`,
+            emoji: true,
+          },
         },
-      },
-      {
-        type: "section",
-        fields: [
-          {
-            type: "mrkdwn",
-            text: "*Status:* Registered",
-          },
-          {
-            type: "mrkdwn",
-            text: `*Namespace:* ${namespace}`,
-          },
-          {
-            type: "mrkdwn",
-            text: `*Next run:* <!date^${nextRunTimeStamp}^{date_short_pretty} {time}|${event.nextRun.toISOString()}>`,
-          },
-          {
-            type: "mrkdwn",
-            text: `*Job:* ${event.jobName}`,
-          },
-        ],
-      },
-    ],
-  });
+        {
+          type: "section",
+          fields: [
+            {
+              type: "mrkdwn",
+              text: "*Status:* Registered",
+            },
+            {
+              type: "mrkdwn",
+              text: `*Namespace:* ${namespace}`,
+            },
+            {
+              type: "mrkdwn",
+              text: `*Next run:* <!date^${nextRunTimeStamp}^{date_short_pretty} {time}|${event.nextRun.toISOString()}>`,
+            },
+            {
+              type: "mrkdwn",
+              text: `*Job:* ${event.jobName}`,
+            },
+          ],
+        },
+      ],
+    })
+  );
 }

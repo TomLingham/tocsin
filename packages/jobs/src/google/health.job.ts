@@ -1,4 +1,4 @@
-import { http } from "@tocsin/common";
+import * as http from "@tocsin/http";
 
 monitor("Google homepage", {
   cron: "*/10 * * * * *",
@@ -16,6 +16,7 @@ monitor("Google homepage", {
 
 monitor("About Google", {
   cron: "*/15 * * * * *",
+  channel: "@UT6CP97JN",
   task: async () => {
     const response = await http.get("https://about.google/");
     if (response.statusCode !== 200) throw new Error(response.statusMessage);
