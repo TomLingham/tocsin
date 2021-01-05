@@ -72,6 +72,7 @@ function createHttpClient(url: string) {
   );
 
   if (proxyUrl != null) {
+    console.log("PROXY", url, proxyUrl);
     const agent = new HttpsProxyAgent(proxyUrl);
     return (
       opts: https.RequestOptions = {},
@@ -94,16 +95,17 @@ function getProxyUrl(protocol: IHttpProtocol, host: string): string | null {
       ? ["https_proxy", "HTTPS_PROXY", ...allProxyEnv]
       : ["http_proxy", "HTTP_PROXY", ...allProxyEnv];
 
-  const proxyEnv = proxyEnvVariableNames.find(isInEnvironment);
-  const noProxy = normalizeNoProxy(noProxyEnv.find(isInEnvironment) ?? "");
+  const proxyVar = proxyEnvVariableNames.find(isInEnvironment);
+  const noProxyVar = noProxyEnv.find(isInEnvironment) ?? "";
+  const noProxy = normalizeNoProxy(process.env[noProxyVar] ?? "");
 
-  if (proxyEnv == null || noProxy.some((part) => host.endsWith(part))) {
+  if (proxyVar == null || noProxy.some((part) => host.endsWith(part))) {
     // if the proxy url isn't set, or the host appears in the no proxy variable
     // we just return null. We shouldn't try and use the proxy in this case.
     return null;
   }
 
-  return process.env[proxyEnv]!;
+  return process.env[proxyVar]!;
 }
 
 function normalizeNoProxy(noProxy: string) {
