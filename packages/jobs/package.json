@@ -2,7 +2,6 @@
   "name": "@tocsin/jobs",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
     "build": "rollup --config rollup.config.js"
   },

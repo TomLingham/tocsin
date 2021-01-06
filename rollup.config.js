@@ -5,10 +5,9 @@ import commonjs from "@rollup/plugin-commonjs";
 import resolve from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import sourcemaps from "rollup-plugin-sourcemaps";
-import { terser } from "rollup-plugin-terser";
 import alias from "@rollup/plugin-alias";
 
-const packages = ["http", "worker", "server"];
+const packages = ["core", "http", "worker", "server"];
 const extensions = [".ts", ".tsx", ".js", ".jsx"];
 
 const createPlugins = (root) => [

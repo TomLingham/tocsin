@@ -2,8 +2,9 @@
   "name": "@tocsin/server",
   "version": "1.0.0",
   "description": "",
-  "main": "lib/index.js",
-  "types": "dist/types",
+  "main": "dist",
+  "module": "module",
+  "types": "module/types",
   "scripts": {
     "dev": "nodemon -e .ts -r ../../scripts/babel.js ./src/index.ts"
   },

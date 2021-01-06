@@ -1,19 +1,12 @@
 import { CronJob } from "cron";
 import { parentPort } from "worker_threads";
 
-interface IMonitorOpts {
-  channel?: SlackChannelName;
-  cron: string;
-  task: () => void;
-}
-
 const FUZZING_MS = 10_000;
 const RESULT_TYPES = ["success", "fail"] as const;
 
 type IResult = typeof RESULT_TYPES[any];
-export type IMonitor = typeof monitor;
 
-export function monitor(name: string, opts: IMonitorOpts) {
+export const monitor = (name: string, opts: IMonitorOpts) => {
   // msOffset is randomly generated to spread the execution time of commonly
   // executed timeslots (for example on the hour). Instead of everything firing
   // at 1pm, each task would be offset by some random amount.
@@ -35,7 +28,7 @@ export function monitor(name: string, opts: IMonitorOpts) {
     nextRun: job.nextDate().toDate(),
     channel: opts.channel,
   });
-}
+};
 
 function createWrappedHandler(name: string, opts: IMonitorOpts) {
   let executionCount = 0;

@@ -12,6 +12,7 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Node",
+    "typeRoots": ["./node_modules/@types", "./node_modules/@tocsin"],
     "paths": {
       "@tocsin/*": ["./node_modules/@tocsin/*/src"]
     }

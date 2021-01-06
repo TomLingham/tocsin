@@ -1,7 +1,8 @@
 /**
  * The URL to load the job definitions file from on startup.
  */
-export const JOB_DEFINITIONS_URL = process.env.JOB_DEFINITIONS_URL ?? "";
+export const JOB_DEFINITIONS_URL =
+  process.env.JOB_DEFINITIONS_URL ?? "http://localhost:8000/jobs.json";
 
 /**
  * The default slack channel to post alerts / messages to. This can be

@@ -2,8 +2,9 @@
   "name": "@tocsin/worker",
   "version": "1.0.2",
   "description": "",
-  "main": "dist/index.js",
-  "module": "module/index.js",
+  "main": "dist",
+  "module": "module",
+  "types": "module/types",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
