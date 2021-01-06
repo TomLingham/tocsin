@@ -5,6 +5,7 @@
   "main": "dist",
   "module": "module",
   "types": "module/types",
+  "private": false,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   }

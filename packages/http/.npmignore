@@ -1,0 +1,4 @@
+*
+!dist/**
+!module/types/**
+!index.d.ts
