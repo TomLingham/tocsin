@@ -1,29 +1,43 @@
 interface IWorkerBaseEvent {
   type: string;
+}
+
+interface IWorkerEvent {
   channel?: SlackChannelName;
   jobName: string;
 }
 
-interface IWorkerFailureEvent extends IWorkerBaseEvent {
+interface IWorkerFailureEvent extends IWorkerEvent {
   type: "failure";
   failingSince: Date;
   error: Error;
 }
 
-interface IWorkerRecoveryEvent extends IWorkerBaseEvent {
+interface IWorkerRecoveredEvent extends IWorkerEvent {
   type: "recovery";
   failingSince: Date;
   recoveredAt: Date;
 }
 
-interface IWorkerRegistrationEvent extends IWorkerBaseEvent {
+interface IWorkerRegistrationEvent extends IWorkerEvent {
   type: "registration";
   nextRun: Date;
 }
 
-declare type IWorkerEvent =
+interface IWorkerIpcRequestEvent extends IWorkerEvent {
+  type: "ipc:request";
+  payload: any;
+}
+
+interface IWorkerIpcResponseEvent extends IWorkerEvent {
+  type: "ipc:response";
+  payload: any;
+  port: any; //TODO: better type...
+}
+
+declare type IWorkerStatusEvent =
   | IWorkerFailureEvent
-  | IWorkerRecoveryEvent
+  | IWorkerRecoveredEvent
   | IWorkerRegistrationEvent;
 
 declare type SlackChannelName = `#${string}` | `@${string}`;
@@ -35,10 +49,6 @@ declare interface IMonitorOpts {
 }
 
 declare namespace tocsin {
-  const monitor: typeof import("./module/types").monitor;
-
-  const http: {
-    get: typeof import("@tocsin/http").get;
-    post: typeof import("@tocsin/http").post;
-  };
+  declare const monitor: typeof import("./module/types").monitor;
+  declare const http: typeof import("@tocsin/http");
 }

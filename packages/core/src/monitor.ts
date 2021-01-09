@@ -20,6 +20,9 @@ export const monitor = (name: string, opts: IMonitorOpts) => {
     cronTime: opts.cron,
     onTick: () => void setTimeout(handler, msOffset),
     start: true,
+
+    // Run straight away to get immediate feedback that the task actually works.
+    runOnInit: true,
   });
 
   raise({
@@ -82,6 +85,11 @@ function createWrappedHandler(name: string, opts: IMonitorOpts) {
   };
 }
 
-async function raise(event: IWorkerEvent) {
+async function raise(event: IWorkerStatusEvent) {
   parentPort?.postMessage(event);
 }
+
+parentPort?.on("message", (event: IWorkerIpcResponseEvent, ...rest) => {
+  console.log(event, rest);
+  console.log("THE_ID", event.port.postMessage({ res: "ROOOOOOOOOOMBA!!!" }));
+});

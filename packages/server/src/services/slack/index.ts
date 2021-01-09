@@ -80,7 +80,7 @@ export async function failure(namespace: string, event: IWorkerFailureEvent) {
 
 export async function recovered(
   namespace: string,
-  event: IWorkerRecoveryEvent
+  event: IWorkerRecoveredEvent
 ) {
   const channel = event.channel ?? SLACK_DEFAULT_CHANNEL;
   const totalDuration = intervalToDuration({
