@@ -24,16 +24,17 @@ interface IWorkerRegistrationEvent extends IWorkerEvent {
   nextRun: Date;
 }
 
-interface IWorkerIpcRequestEvent extends IWorkerEvent {
+interface IWorkerIpcEvent extends IWorkerEvent {
   type: "ipc:request";
   payload: any;
 }
 
-interface IWorkerIpcResponseEvent extends IWorkerEvent {
-  type: "ipc:response";
-  payload: any;
+interface IWorkerIpcRequestEvent extends IWorkerIpcEvent {
+  resource: string;
   port: any; //TODO: better type...
 }
+
+interface IWorkerIpcResponseEvent extends IWorkerIpcEvent {}
 
 declare type IWorkerStatusEvent =
   | IWorkerFailureEvent

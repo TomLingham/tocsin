@@ -1,6 +1,7 @@
 import * as slack from "../slack";
 import { Worker, MessageChannel } from "worker_threads";
 import { WORKER_RESTART_TIMEOUT_MS } from "../../config";
+import { Namespaces } from "../data/namespaces";
 
 const PATH_TO_WORKER_MODULE = require.resolve("@tocsin/worker");
 
@@ -36,9 +37,13 @@ export class TocsinWorker {
     this.#worker.on("exit", this.onReceiveExitEvent);
   }
 
-  public async fetch(resource: string) {
+  public getNamespace() {
+    return this.#ns;
+  }
+
+  public async fetch<T = any>(resource: string): Promise<T> {
     const { port1, port2 } = new MessageChannel();
-    this.#worker?.postMessage({ type: "ipc:response", resource, port: port2 }, [
+    this.#worker?.postMessage({ type: "ipc:request", resource, port: port2 }, [
       port2,
     ]);
     return new Promise((resolve) => {
@@ -55,6 +60,7 @@ export class TocsinWorker {
   };
 
   private onReceiveErrorEvent = async (error: Error) => {
+    console.log(error);
     this.#logErr(error.message);
   };
 
@@ -102,10 +108,9 @@ export class TocsinWorker {
 export async function registerNamespace(name: string, code: string) {
   console.log("Registered namespace", { name });
   const namespace = new TocsinWorker(name, code);
-  await namespace.start();
+  Namespaces.add(namespace);
 
-  const jobs = await namespace.fetch("/jobs");
-  console.log("ALL_REGISTERED_JOBS", jobs);
+  await namespace.start();
 }
 
 /**

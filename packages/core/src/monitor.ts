@@ -1,5 +1,6 @@
 import { CronJob } from "cron";
 import { parentPort } from "worker_threads";
+import { Jobs } from "./jobs";
 
 const FUZZING_MS = 10_000;
 const RESULT_TYPES = ["success", "fail"] as const;
@@ -24,6 +25,8 @@ export const monitor = (name: string, opts: IMonitorOpts) => {
     // Run straight away to get immediate feedback that the task actually works.
     runOnInit: true,
   });
+
+  Jobs.add({ job, msOffset, name, cron: opts.cron, channel: opts.channel });
 
   raise({
     type: "registration",
@@ -89,7 +92,16 @@ async function raise(event: IWorkerStatusEvent) {
   parentPort?.postMessage(event);
 }
 
-parentPort?.on("message", (event: IWorkerIpcResponseEvent, ...rest) => {
-  console.log(event, rest);
-  console.log("THE_ID", event.port.postMessage({ res: "ROOOOOOOOOOMBA!!!" }));
+parentPort?.on("message", (event: IWorkerIpcRequestEvent) => {
+  if (event.resource === "/jobs") {
+    const result = [...Jobs].map((job) => ({
+      name: job.name,
+      msOffset: job.msOffset,
+      nextRunTime: job.job.nextDate().toDate(),
+      running: job.job.running,
+      channel: job.channel,
+      cron: job.cron,
+    }));
+    event.port.postMessage(result);
+  }
 });

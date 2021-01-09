@@ -7,14 +7,12 @@ global.tocsin = tocsin;
 
 const [, , url] = process.argv;
 
-tocsin.http
-  .get(url)
-  .then((res) =>
-    vm.runInThisContext(m.wrap(res.body))(
-      exports,
-      require,
-      module,
-      __filename,
-      __dirname
-    )
+tocsin.http.get(url).then((res) => {
+  vm.runInThisContext(m.wrap(res.body))(
+    exports,
+    require,
+    module,
+    __filename,
+    __dirname
   );
+});
