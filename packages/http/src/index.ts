@@ -10,11 +10,19 @@ interface IHttpResponse extends http.IncomingMessage {
 /**
  * GET an HTTP endpoint.
  */
-export async function get(url: string): Promise<IHttpResponse> {
+export async function get(
+  url: string,
+  opts: http.RequestOptions = {}
+): Promise<IHttpResponse> {
   const request = createHttpClient(url);
 
+  const options: http.RequestOptions = {
+    ...opts,
+    method: "GET",
+  };
+
   return new Promise((resolve, reject) => {
-    const req = request({}, (response) => {
+    const req = request(options, (response) => {
       let body = "";
       response.on("data", (chunk) => (body += chunk));
       response.on("close", () => resolve(Object.assign(response, { body })));
@@ -22,7 +30,6 @@ export async function get(url: string): Promise<IHttpResponse> {
     });
 
     req.on("error", reject);
-
     req.end();
   });
 }
