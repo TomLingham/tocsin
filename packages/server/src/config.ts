@@ -9,7 +9,7 @@ export const JOB_DEFINITIONS_URL =
  * overridden per monitoring task.
  */
 export const SLACK_DEFAULT_CHANNEL: SlackChannelName =
-  (process.env.SLACK_DEFAULT_CHANNEL as any) ?? ("#alerts" as const); // TODO: validate these env variables...
+  (process.env.SLACK_DEFAULT_CHANNEL as any) ?? ("@UT6CP97JN" as const); // TODO: validate these env variables...
 
 /**
  * The slack incoming webhook url for your slack workspace.

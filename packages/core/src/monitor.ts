@@ -1,6 +1,7 @@
 import { CronJob } from "cron";
 import { parentPort } from "worker_threads";
-import { Jobs } from "./jobs";
+import { Jobs } from "./data";
+import { jobs } from "./resources/jobs";
 
 const FUZZING_MS = 10_000;
 const RESULT_TYPES = ["success", "fail"] as const;
@@ -92,16 +93,6 @@ async function raise(event: IWorkerStatusEvent) {
   parentPort?.postMessage(event);
 }
 
-parentPort?.on("message", (event: IWorkerIpcRequestEvent) => {
-  if (event.resource === "/jobs") {
-    const result = [...Jobs].map((job) => ({
-      name: job.name,
-      msOffset: job.msOffset,
-      nextRunTime: job.job.nextDate().toDate(),
-      running: job.job.running,
-      channel: job.channel,
-      cron: job.cron,
-    }));
-    event.port.postMessage(result);
-  }
+parentPort?.on("message", async (event: IWorkerIpcRequestEvent) => {
+  if (event.resource === "jobs") event.port.postMessage(await jobs());
 });

@@ -1,7 +1,8 @@
 import * as slack from "../slack";
 import { Worker, MessageChannel } from "worker_threads";
 import { WORKER_RESTART_TIMEOUT_MS } from "../../config";
-import { Namespaces } from "../data/namespaces";
+import * as data from "../data/namespaces";
+import { format } from "date-fns";
 
 const PATH_TO_WORKER_MODULE = require.resolve("@tocsin/worker");
 
@@ -41,12 +42,27 @@ export class TocsinWorker {
     return this.#ns;
   }
 
-  public async fetch<T = any>(resource: string): Promise<T> {
+  public async getJobs() {
+    const jobs = await this.fetchWorkerResource("jobs");
+    return jobs.map((job) => ({
+      ...job,
+      lastRunTime: format(job.lastRunTime, "yyyy-MM-dd"),
+      nextRunTime: job.nextRunTime,
+    }));
+  }
+
+  public async delete() {
+    this.#exitScheduled = true;
+    await this.#worker?.terminate();
+  }
+
+  private async fetchWorkerResource(
+    resource: WorkerResource
+  ): Promise<IWorkerResources[typeof resource]> {
     const { port1, port2 } = new MessageChannel();
-    this.#worker?.postMessage({ type: "ipc:request", resource, port: port2 }, [
-      port2,
-    ]);
+    this.#worker?.postMessage({ resource, port: port2 }, [port2]);
     return new Promise((resolve) => {
+      // TODO: Rejections and error handling...
       port1.on("message", resolve);
     });
   }
@@ -60,8 +76,7 @@ export class TocsinWorker {
   };
 
   private onReceiveErrorEvent = async (error: Error) => {
-    console.log(error);
-    this.#logErr(error.message);
+    this.#logErr(error.stack ?? error.message);
   };
 
   private onReceiveMessageEvent = async (event: IWorkerStatusEvent) => {
@@ -82,9 +97,13 @@ export class TocsinWorker {
     slack.recovered(this.#ns, event);
   };
 
-  private handleScheduledExit = () => this.#worker?.terminate();
+  private handleScheduledExit = () => {
+    console.log("SCHEDULED TERMINATION");
+    //this.#worker?.terminate();
+  };
 
   private handleUnscheduledExit = () => {
+    console.log("UN-SCHEDULED TERMINATION");
     // In the unlikely event that the worker exits and it's not scheduled, we'll
     // try to load it again after a sane timeout.
     // TODO: exponential back-off with alerts raised...
@@ -108,7 +127,7 @@ export class TocsinWorker {
 export async function registerNamespace(name: string, code: string) {
   console.log("Registered namespace", { name });
   const namespace = new TocsinWorker(name, code);
-  Namespaces.add(namespace);
+  data.Namespaces.add(namespace);
 
   await namespace.start();
 }

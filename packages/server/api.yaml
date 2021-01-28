@@ -1,0 +1,19 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Tocsin API
+  description: The HTTP API for interfacing with the Tocsin Jobs service
+paths:
+  /namespaces:
+    get:
+      description:
+        Returns a list of all the namespaces that are currently registered.
+      responses:
+        "200":
+          description: Namespaces Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string

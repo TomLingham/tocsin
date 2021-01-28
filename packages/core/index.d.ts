@@ -1,45 +1,5 @@
-interface IWorkerBaseEvent {
-  type: string;
-}
-
-interface IWorkerEvent {
-  channel?: SlackChannelName;
-  jobName: string;
-}
-
-interface IWorkerFailureEvent extends IWorkerEvent {
-  type: "failure";
-  failingSince: Date;
-  error: Error;
-}
-
-interface IWorkerRecoveredEvent extends IWorkerEvent {
-  type: "recovery";
-  failingSince: Date;
-  recoveredAt: Date;
-}
-
-interface IWorkerRegistrationEvent extends IWorkerEvent {
-  type: "registration";
-  nextRun: Date;
-}
-
-interface IWorkerIpcEvent extends IWorkerEvent {
-  type: "ipc:request";
-  payload: any;
-}
-
-interface IWorkerIpcRequestEvent extends IWorkerIpcEvent {
-  resource: string;
-  port: any; //TODO: better type...
-}
-
-interface IWorkerIpcResponseEvent extends IWorkerIpcEvent {}
-
-declare type IWorkerStatusEvent =
-  | IWorkerFailureEvent
-  | IWorkerRecoveredEvent
-  | IWorkerRegistrationEvent;
+/// <reference path="./typings/events.d.ts" />
+/// <reference path="./typings/resources/jobs.d.ts" />
 
 declare type SlackChannelName = `#${string}` | `@${string}`;
 
